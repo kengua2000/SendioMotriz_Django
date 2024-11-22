@@ -1,0 +1,24 @@
+# Ignorar el ambiente virtual
+env/
+*.env
+
+# Archivos y carpetas comunes que no deberían subirse
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Configuración del editor o IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Archivos de logs y bases de datos locales
+*.log
+*.sqlite3
+
+# Archivos de configuración del sistema operativo
+.envrc
