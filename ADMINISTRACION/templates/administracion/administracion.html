@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+
+{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+<div class="container my-5">
+    <div class="text-center">
+        <h1 class="mb-4">Bienvenido a Sendio Motriz</h1>
+        <p class="lead">Accede rápidamente a la información clave de tu negocio.</p>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-3 mb-4">
+            <a href="{% url 'lista_clientes' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill icon text-primary mb-3"></i>
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text">{{ clientes_count }} registrados</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-4">
+            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-fill icon text-primary mb-3"></i>
+                    <h5 class="card-title">Personal</h5>
+                    <p class="card-text">{{ empleados_count }} registrados</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-4">
+            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam-fill icon text-primary mb-3"></i>
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text">{{ productos_count }} disponibles</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-4">
+            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+                <div class="card-body text-center">
+                    <i class="bi bi-car-front-fill icon text-primary mb-3"></i>
+                    <h5 class="card-title">Vehículos</h5>
+                    <p class="card-text">{{ vehiculos_count }} en inventario</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

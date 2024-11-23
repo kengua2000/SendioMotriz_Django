@@ -1,0 +1,33 @@
+<!-- Barra Lateral -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2><a href="{% url 'home_administracion' %}"  class="text-decoration-none"><i class="fas fa-tools me-2"></i>Sendio Motriz</a></h2>
+    </div>
+    
+    <nav class="nav nav-pills flex-column p-3">
+        <a href="{% url 'home_administracion' %}"  class="nav-link">
+            <i class="fas fa-home"></i>
+            Home
+        </a>
+        <a href="{% url 'lista_clientes' %}" class="nav-link">
+            <i class="fas fa-users"></i>
+            Clientes
+        </a>
+        <a class="nav-link">
+            <i class="fas fa-user-tie"></i>
+            Personal
+        </a>
+        <a class="nav-link">
+            <i class="fas fa-boxes"></i>
+            Productos
+        </a>
+        <a class="nav-link">
+            <i class="fas fa-car"></i>
+            Vehículos
+        </a>
+        <a  class="nav-link">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Facturas
+        </a>
+    </nav>
+</aside>

@@ -1,0 +1,28 @@
+.card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1rem;
+}
+
+.icon {
+    font-size: 3rem; /* Ajusta el tamaño del icono */
+}
+
+.container {
+    background-color: #f8f9fa; /* Fondo suave para el contenedor */
+    padding: 30px; /* Padding alrededor del contenido */
+    border-radius: 10px; /* Bordes redondeados */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra suave para el contenedor */
+}

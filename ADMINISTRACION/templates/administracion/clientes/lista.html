@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Clientes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'cliente/css/lista.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado y barra de búsqueda -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Lista de Clientes
+                    </h2>
+                </div>
+                <div class="col-md-6">
+                    <form method="get" class="d-flex gap-2">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar por cédula, nombre o correo..." value="{{ query }}">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        {% if query %}
+                        <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <a href="{% url 'crear_cliente' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Crear Nuevo Cliente
+        </a>
+        <span class="text-muted">Total: {{ clientes.count }} cliente{{ clientes.count|pluralize }}</span>
+    </div>
+
+    <!-- Tabla de clientes -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo Electrónico</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>Fecha Creación</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.cedula }}</td>
+                        <td>{{ cliente.nombre_completo }}</td>
+                        <td>
+                            <a href="mailto:{{ cliente.correo_electronico }}">{{ cliente.correo_electronico }}</a>
+                        </td>
+                        <td>{{ cliente.telefono|default:"--" }}</td>
+                        <td>{{ cliente.direccion|default:"--" }}</td>
+                        <td>{{ cliente.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ cliente.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- Modal de confirmación de eliminación -->
+                            <div class="modal fade" id="deleteModal{{ cliente.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            ¿Estás seguro de que deseas eliminar al cliente <strong>{{ cliente.nombre_completo }}</strong>?
+                                            <small class="text-danger d-block mt-2">Esta acción no se puede deshacer.</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn btn-danger">Eliminar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-info-circle me-2"></i>No hay clientes registrados.
+                            <a href="{% url 'crear_cliente' %}" class="btn btn-link">Crear el primer cliente</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
