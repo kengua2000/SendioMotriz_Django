@@ -9,7 +9,9 @@ from .models import (
     Cliente,
     Empleado,
     EstadoProductoChoices,
-    Proveedor
+    Producto,
+    Proveedor,
+    Vehiculo
 )
 
 class ClienteForm(forms.ModelForm):
@@ -321,12 +323,6 @@ class EmpleadoForm(forms.ModelForm):
         
         return cleaned_data
 
-
-
-from django import forms
-from django.core.validators import RegexValidator, EmailValidator
-import re
-
 class ProveedorForm(forms.ModelForm):
     # Field-level validators with enhanced validation patterns
     nombre = forms.CharField(
@@ -493,12 +489,6 @@ class ProveedorForm(forms.ModelForm):
         # Por ejemplo, validar que el correo electrónico del contacto coincida con el dominio de la empresa
         
         return cleaned_data
-    
-
-
-from django.core.exceptions import ValidationError
-import re
-from .models import Producto
 
 class ProductoForm(forms.ModelForm):
     nombre = forms.CharField(
@@ -571,7 +561,7 @@ class ProductoForm(forms.ModelForm):
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'placeholder': 'URL o datos base64 de la imagen',
+            'placeholder': 'URL de la imagen',
             'rows': 3
         })
     )
@@ -647,5 +637,158 @@ class ProductoForm(forms.ModelForm):
                 self.add_error('marca', 'La marca no puede ser igual al nombre del producto.')
         
         return cleaned_data
+    
+class VehiculoForm(forms.ModelForm):
+    placa = forms.CharField(
+        max_length=20,
+        validators=[
+            RegexValidator(
+                regex=r'^[A-Z0-9\-]+$',
+                message='La placa solo debe contener letras mayúsculas, números y guiones.',
+                code='invalid_placa'
+            )
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese la placa del vehículo'
+        })
+    )
+    
+    marca = forms.CharField(
+        max_length=50,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]+$',
+                message='La marca solo debe contener letras, números, espacios y guiones.',
+                code='invalid_brand'
+            )
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese la marca del vehículo'
+        })
+    )
+    
+    modelo = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el modelo del vehículo'
+        })
+    )
+    
+    precio = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el precio del vehículo',
+            'min': '0',
+            'step': '0.01'
+        })
+    )
+    
+    color = forms.CharField(
+        max_length=50,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$',
+                message='El color solo debe contener letras y espacios.',
+                code='invalid_color'
+            )
+        ],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el color del vehículo'
+        })
+    )
+    
+    cantidad = forms.IntegerField(
+        validators=[MinValueValidator(0)],
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese la cantidad disponible',
+            'min': '0'
+        })
+    )
+    
+    km_recorridos = forms.IntegerField(
+        validators=[MinValueValidator(0)],
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese los kilómetros recorridos',
+            'min': '0'
+        })
+    )
+    
+    tipo_combustible = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese el tipo de combustible'
+        })
+    )
+
+    imagen = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'URL de la imagen',
+            'rows': 3
+        })
+    )
+    
+    estado = forms.ChoiceField(
+        choices=Vehiculo.EstadoVehiculoChoices.choices,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
+    proveedor = forms.ModelChoiceField(
+        queryset=Proveedor.objects.all(),
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
+    class Meta:
+        model = Vehiculo
+        fields = [
+            'placa', 'marca', 'modelo', 'precio', 'color', 'cantidad', 
+            'km_recorridos', 'tipo_combustible', 'imagen', 'estado', 'proveedor'
+        ]
+    
+    def clean_placa(self):
+        placa = self.cleaned_data['placa']
+        vehiculo = self.instance
+
+        if vehiculo and vehiculo.placa != placa:
+            # Solo validamos la unicidad si la placa ha cambiado
+            if Vehiculo.objects.filter(placa=placa).exists():
+                raise forms.ValidationError("Ya existe un vehículo con esta placa.")
+        return placa
+    
+    def clean_precio(self):
+        """Validación personalizada para el precio"""
+        precio = self.cleaned_data.get('precio')
+        if precio > 999999999.99:
+            raise ValidationError('El precio no puede ser mayor a 999,999,999.99')
+        return precio
+    
+    def clean(self):
+        """Validaciones a nivel de formulario"""
+        cleaned_data = super().clean()
+        marca = cleaned_data.get('marca', '')
+        modelo = cleaned_data.get('modelo', '')
+        
+        if marca and modelo:
+            # Verificar que la marca y el modelo no sean idénticos
+            if marca.lower() == modelo.lower():
+                self.add_error('modelo', 'El modelo no puede ser igual a la marca.')
+        
+        return cleaned_data
+
 
         

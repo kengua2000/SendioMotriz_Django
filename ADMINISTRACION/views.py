@@ -2,8 +2,8 @@
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
-from .models import Cliente, Empleado, Producto, Proveedor
-from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm
+from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo
+from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm, VehiculoForm
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -323,6 +323,94 @@ def eliminar_producto(request, id):
     except Exception as e:
         messages.error(request, f'Error al eliminar el producto: {str(e)}')
     return redirect('lista_productos')
+
+# Listar Vehículos
+def lista_vehiculos(request):
+    query = request.GET.get('q', '')
+    vehiculos = Vehiculo.objects.all()
+
+    if query:
+        vehiculos = vehiculos.filter(
+            Q(placa__icontains=query) |
+            Q(marca__icontains=query) |
+            Q(modelo__icontains=query) |
+            Q(color__icontains=query) |
+            Q(estado__icontains=query) |
+            Q(proveedor__nombre__icontains=query)  # Asumiendo que proveedor tiene un campo nombre
+        )
+
+    # Ordenar vehículos por fecha de creación, más recientes primero
+    vehiculos = vehiculos.order_by('-fecha_creacion')
+
+    context = {
+        'vehiculos': vehiculos,
+        'query': query,
+    }
+    return render(request, 'administracion/vehiculos/lista.html', context)
+
+# Crear o Editar Vehículo
+def crear_o_editar_vehiculo(request, id=None):
+    try:
+        if id:
+            vehiculo = get_object_or_404(Vehiculo, id=id)
+            title = "Actualizar Vehículo"
+        else:
+            vehiculo = None
+            title = "Crear Vehículo"
+
+        if request.method == 'POST':
+            form = VehiculoForm(request.POST, instance=vehiculo)
+
+            if form.is_valid():
+                try:
+                    # Guardar el vehículo
+                    vehiculo = form.save()
+
+                    messages.success(request, 'Vehículo guardado exitosamente.')
+                    return redirect('lista_vehiculos')
+                except IntegrityError as e:
+                    # Verificar el error de duplicado solo si la placa es nueva
+                    if 'unique constraint' in str(e).lower():
+                        if 'placa' in str(e).lower():
+                            # Verificar si el vehículo que estamos actualizando tiene la misma placa
+                            if vehiculo and vehiculo.placa == form.cleaned_data['placa']:
+                                messages.error(request, 'La placa no se ha modificado y sigue siendo válida.')
+                            else:
+                                form.add_error('placa', 'Ya existe un vehículo con esta placa.')
+                        # Agregar más validaciones de unicidad si son necesarias
+            else:
+                # Agregar mensajes de error específicos para cada campo
+                for field_name, error_list in form.errors.items():
+                    field_label = form.fields[field_name].label or field_name
+                    for error in error_list:
+                        messages.add_message(request, messages.ERROR, f'Error en {field_label}: {error}')
+
+        else:
+            form = VehiculoForm(instance=vehiculo)
+
+        context = {
+            'form': form,
+            'title': title,
+            'vehiculo': vehiculo,
+            'is_edit': bool(id)
+        }
+
+        return render(request, 'administracion/vehiculos/vehiculo_form.html', context)
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, f'Error al procesar la solicitud: {str(e)}')
+        return redirect('lista_vehiculos')
+
+# Eliminar Vehículo
+def eliminar_vehiculo(request, id):
+    try:
+        vehiculo = get_object_or_404(Vehiculo, id=id)
+        vehiculo.delete()
+        messages.success(request, f'Vehículo con placa "{vehiculo.placa}" eliminado exitosamente.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar el vehículo: {str(e)}')
+    return redirect('lista_vehiculos')
+
 
 
 

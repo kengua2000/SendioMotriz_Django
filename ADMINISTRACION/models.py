@@ -12,6 +12,7 @@ class EstadoProductoChoices(models.TextChoices):
     DISPONIBLE = 'Disponible', 'Disponible'
     AGOTADO = 'Agotado', 'Agotado'
 
+
 class MetodoPagoChoices(models.TextChoices):
     EFECTIVO = 'Efectivo', 'Efectivo'
     TARJETA = 'Tarjeta', 'Tarjeta'
@@ -39,7 +40,6 @@ class Cliente(models.Model):
 
     def __str__(self):
         return f"{self.nombre_completo} - {self.cedula}"
-    
 
 class Empleado(models.Model):
     cedula = models.CharField(max_length=20, unique=True)
@@ -99,5 +99,38 @@ class Producto(models.Model):
     def __str__(self):
         return f"{self.nombre} - {self.marca}"
     
+class Vehiculo(models.Model):
+    class EstadoVehiculoChoices(models.TextChoices):
+        DISPONIBLE = 'Disponible', 'Disponible'
+        AGOTADO = 'Agotado', 'Agotado'
 
+    placa = models.CharField(max_length=20, unique=True)
+    marca = models.CharField(max_length=50)
+    modelo = models.CharField(max_length=50)
+    precio = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    color = models.CharField(max_length=50)
+    cantidad = models.IntegerField(validators=[MinValueValidator(0)])
+    imagen = models.TextField(blank=True, null=True)
+    km_recorridos = models.IntegerField(validators=[MinValueValidator(0)])
+    tipo_combustible = models.CharField(max_length=50)
+    estado = models.CharField(
+        max_length=20,
+        choices=EstadoVehiculoChoices.choices,
+        default=EstadoVehiculoChoices.DISPONIBLE
+    )
+    proveedor = models.ForeignKey(
+        Proveedor,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='vehiculos'
+    )
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.marca} {self.modelo} - {self.placa}"
 
