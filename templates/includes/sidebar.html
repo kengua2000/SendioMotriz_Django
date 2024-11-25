@@ -13,11 +13,16 @@
             <i class="fas fa-users"></i>
             Clientes
         </a>
-        <a class="nav-link">
+        <a href="{% url 'lista_empleados' %}" class="nav-link">
             <i class="fas fa-user-tie"></i>
             Personal
         </a>
-        <a class="nav-link">
+        
+        <a href="{% url 'lista_proveedores' %}" class="nav-link">
+            <i class="fas fa-industry me-2"></i>
+            Proveedores
+        </a>
+        <a href="{% url 'lista_productos' %}" class="nav-link">
             <i class="fas fa-boxes"></i>
             Productos
         </a>

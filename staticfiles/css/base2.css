@@ -1,0 +1,37 @@
+/* Barra de navegación horizontal */
+.navbar-dark {
+    background-color: var(--primary-color);
+}
+
+
+.navbar-toggler {
+    background-color: var(--primary-color);
+}
+
+/* Contenido principal */
+.content {
+    margin-top: 56px; /* Altura de la barra de navegación */
+    padding: 20px;
+}
+
+
+
+
+
+.navbar-nav .nav-link {
+    color: #fff;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
