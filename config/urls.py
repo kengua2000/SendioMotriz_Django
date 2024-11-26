@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('administracion/', include('ADMINISTRACION.urls')),
     path('', include('TIENDA.urls')),  
-    #path('accounts/', include('django.contrib.auth.urls')),  
+    path('api-auth/', include('rest_framework.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'ADMINISTRACION.views.custom_404'

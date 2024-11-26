@@ -1,26 +1,115 @@
-
-from django.db import IntegrityError
-from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Q
-from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo
-from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm, VehiculoForm
-
-from django.contrib import messages
-from django.db import IntegrityError
-from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Q
-from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo, Factura, DetalleFactura
-from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm, VehiculoForm, FacturaForm, DetalleFacturaForm
-
-from django.contrib import messages
+from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.urls import reverse_lazy
-from django.db import transaction
-from django.forms import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Q
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo, Factura, DetalleFactura
+from .forms import ClienteForm, EmpleadoForm, FacturaForm, ProductoForm, ProveedorForm, VehiculoForm
+
+
+def lista_facturas(request):
+    query = request.GET.get('q', '')
+    facturas = Factura.objects.all()
+    
+    if query:
+        facturas = facturas.filter(
+            Q(cliente__nombre__icontains=query) |
+            Q(empleado__nombre__icontains=query) |
+            Q(fecha__icontains=query) |
+            Q(hora__icontains=query) |
+            Q(metodo_pago__icontains=query)
+        )
+    
+    # Ordenar las facturas por fecha, más recientes primero
+    facturas = facturas.order_by('-fecha')
+
+    context = {
+        'facturas': facturas,
+        'query': query,
+    }
+    return render(request, 'administracion/facturas/lista.html', context)
+
+
+# Vista para crear o editar una factura
+from django.utils import timezone
+
+def crear_o_editar_factura(request, id=None):
+    try:
+        if id:
+            factura = get_object_or_404(Factura, id=id)
+            title = "Actualizar Factura"
+        else:
+            factura = None
+            title = "Crear Factura"
+
+        # Obtener la fecha y hora actuales
+        fecha_actual = timezone.now()
+
+        if request.method == 'POST':
+            # Añadir los valores de fecha y hora al POST si no se incluyen
+            request.POST = request.POST.copy()
+            if not request.POST.get('fecha'):
+                request.POST['fecha'] = fecha_actual.date()  # Para la fecha en formato YYYY-MM-DD
+            if not request.POST.get('hora'):
+                request.POST['hora'] = fecha_actual.strftime('%H:%M')  # Para la hora en formato HH:MM
+
+            total_factura = request.POST.get('total', 0)
+
+            form = FacturaForm(request.POST, instance=factura)
+
+            if form.is_valid():
+                try:
+                    factura = form.save(commit=False)
+                    factura.total = total_factura
+                    factura = form.save()
+                    
+                    messages.success(request, 'Factura guardada exitosamente.')
+                    return redirect('lista_facturas')
+                except IntegrityError as e:
+                    if 'unique constraint' in str(e).lower():
+                        pass
+            else:
+                for field_name, error_list in form.errors.items():
+                    field_label = form.fields[field_name].label or field_name
+                    for error in error_list:
+                        messages.add_message(request, messages.ERROR, f'Error en {field_label}: {error}')
+
+        else:
+            form = FacturaForm(instance=factura)
+
+        context = {
+            'form': form,
+            'title': title,
+            'factura': factura,
+            'is_edit': bool(id),
+            'fecha_actual': fecha_actual,
+            'clientes': Cliente.objects.all(),
+            'empleados': Empleado.objects.all(),
+            'productos': Producto.objects.all(),
+        }
+
+        return render(request, 'administracion/facturas/factura_form.html', context)
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, f'Error al procesar la solicitud: {str(e)}')
+        return redirect('lista_facturas')
+
+
+
+# Vista para eliminar una factura
+def eliminar_factura(request, id):
+    try:
+        factura = get_object_or_404(Factura, id=id)
+        factura.delete()
+        messages.success(request, f'Factura "{factura.id}" eliminada exitosamente.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar la factura: {str(e)}')
+    return redirect('lista_facturas')
+
 
 def logout(request):
     request.session.flush()  # Elimina todos los datos de la sesión
@@ -434,69 +523,3 @@ def eliminar_vehiculo(request, id):
     return redirect('lista_vehiculos')
 
 
-class FacturaCreateView(CreateView):
-    model = Factura
-    form_class = FacturaForm
-    template_name = 'administracion/facturas/factura_form.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        DetalleFacturaFormSet = inlineformset_factory(
-            Factura, 
-            DetalleFactura, 
-            form=DetalleFacturaForm, 
-            extra=3,  
-            can_delete=True
-        )
-        
-        if self.request.POST:
-            context['detalles_formset'] = DetalleFacturaFormSet(self.request.POST)
-        else:
-            context['detalles_formset'] = DetalleFacturaFormSet()
-        
-        return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        detalles_formset = context['detalles_formset']
-        
-        with transaction.atomic():
-            # Guardar la factura
-            self.object = form.save(commit=False)
-            
-            # Establecer total a 0 por defecto
-            self.object.total = 0
-            
-            # Validar y guardar los detalles
-            if detalles_formset.is_valid():
-                detalles_formset.instance = self.object
-                detalles = detalles_formset.save(commit=False)
-                
-                # Calcular total y actualizar stock
-                total = 0
-                for detalle in detalles:
-                    detalle.factura = self.object
-                    
-                    # Resto del código existente...
-                    
-                # Actualizar total de la factura
-                self.object.total = total
-                self.object.save()
-                
-                messages.success(self.request, 'Factura creada exitosamente')
-                return super().form_valid(form)
-            else:
-                messages.error(self.request, 'Hay errores en los detalles de la factura')
-                return self.render_to_response(self.get_context_data(form=form))
-
-    def get_success_url(self):
-        return reverse_lazy('factura_detalle', kwargs={'pk': self.object.pk})
-    
-DetalleFacturaFormSet = inlineformset_factory(
-    Factura, 
-    DetalleFactura, 
-    form=DetalleFacturaForm, 
-    extra=3,  
-    can_delete=True,
-    can_delete_extra=True  # Permite eliminar formularios extras
-)

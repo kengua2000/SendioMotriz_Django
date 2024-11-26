@@ -26,7 +26,7 @@
         <aside class="sidebar" id="sidebar">
             {% include 'includes/sidebar.html' %}
         </aside>
-    
+        {% csrf_token %}
         <main class="content">
             {% block content %}
             {% endblock %}

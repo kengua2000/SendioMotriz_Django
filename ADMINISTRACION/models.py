@@ -134,28 +134,20 @@ class Vehiculo(models.Model):
     def __str__(self):
         return f"{self.marca} {self.modelo} - {self.placa}"
 
+
 class Factura(models.Model):
-    empleado = models.ForeignKey(
-        Empleado,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='facturas'
-    )
-    cliente = models.ForeignKey(
-        Cliente,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='facturas'
-    )
-    fecha_emision = models.DateTimeField(default=timezone.now)
+    empleado = models.CharField(max_length=100, unique=True) # Mantén esta relación si la tabla Empleado existe
+    cliente = models.CharField(max_length=100, unique=True)
+    fecha = models.DateField(default=timezone.now)  # Cambiado a `fecha` como en el código inicial
+    hora = models.TimeField(default=timezone.now)  # Agregado el campo `hora`
     metodo_pago = models.CharField(
         max_length=20,
-        choices=MetodoPagoChoices.choices
-    )
-    estado_pago = models.CharField(
-        max_length=20,
-        choices=EstadoPagoChoices.choices,
-        default=EstadoPagoChoices.PENDIENTE
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('tarjeta', 'Tarjeta'),
+            ('transferencia', 'Transferencia')
+        ],  # Ajustando los métodos de pago
+        default='efectivo'
     )
     total = models.DecimalField(
         max_digits=10,
@@ -173,14 +165,7 @@ class DetalleFactura(models.Model):
         related_name='detalles'
     )
     producto = models.ForeignKey(
-        Producto,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='detalles_factura'
-    )
-    vehiculo = models.ForeignKey(
-        Vehiculo,
+        'Producto',  # Asume que existe un modelo Producto
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -193,18 +178,13 @@ class DetalleFactura(models.Model):
         validators=[MinValueValidator(0)]
     )
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
-        if self.producto and self.vehiculo:
-            raise ValidationError('No puede tener producto y vehículo al mismo tiempo')
-        if not self.producto and not self.vehiculo:
-            raise ValidationError('Debe especificar un producto o un vehículo')
-
     def save(self, *args, **kwargs):
-        self.clean()
+        # Asegura que la factura esté validada correctamente
+        if not self.producto:
+            raise ValueError('Debe especificar un producto para el detalle.')
         super().save(*args, **kwargs)
 
     def __str__(self):
-        item = self.producto if self.producto else self.vehiculo
-        return f"Detalle de {item} en Factura #{self.factura.id}"
+        return f"Detalle de {self.producto} en Factura #{self.factura.id}"
+
 

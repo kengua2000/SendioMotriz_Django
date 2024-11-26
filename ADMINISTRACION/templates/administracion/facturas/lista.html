@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Facturas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lista.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado y barra de búsqueda -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>Lista de Facturas
+                    </h2>
+                </div>
+                <div class="col-md-6">
+                    <form method="get" class="d-flex gap-2">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar por cliente, empleado o fecha..." value="{{ query }}">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        {% if query %}
+                        <a href="{% url 'lista_facturas' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="messages mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Botones de acción -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <a href="{% url 'crear_factura' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Crear Nueva Factura
+        </a>
+        <span class="text-muted">Total: {{ facturas.count }} factura{{ facturas.count|pluralize }}</span>
+    </div>
+
+    <!-- Tabla de facturas -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Empleado</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Método de Pago</th>
+                        <th>Total</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas %}
+                    <tr>
+                        <td>{{ factura.cliente.nombre }}</td>
+                        <td>{{ factura.empleado.nombre }}</td>
+                        <td>{{ factura.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ factura.hora|time:"H:i" }}</td>
+                        <td>{{ factura.metodo_pago|capfirst }}</td>
+                        <td>${{ factura.total|floatformat:2 }}</td>
+                        
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'editar_factura' factura.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ factura.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- Modal de confirmación de eliminación -->
+                            <div class="modal fade" id="deleteModal{{ factura.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            ¿Estás seguro de que deseas eliminar la factura de <strong>{{ factura.cliente.nombre }}</strong>?
+                                            <small class="text-danger d-block mt-2">Esta acción no se puede deshacer.</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <a href="{% url 'eliminar_factura' factura.id %}" class="btn btn-danger">Eliminar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-info-circle me-2"></i>No hay facturas registradas.
+                            <a href="{% url 'crear_factura' %}" class="btn btn-link">Crear la primera factura</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

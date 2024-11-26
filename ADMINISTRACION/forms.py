@@ -5,16 +5,16 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.utils.translation import gettext_lazy as _
 import re
+from django.utils import timezone
 
 from .models import (
     Cliente,
-    DetalleFactura,
     Empleado,
     EstadoProductoChoices,
-    Factura,
     Producto,
     Proveedor,
-    Vehiculo
+    Vehiculo,
+    Factura, DetalleFactura
 )
 
 class ClienteForm(forms.ModelForm):
@@ -798,109 +798,101 @@ class VehiculoForm(forms.ModelForm):
 
 
 class FacturaForm(forms.ModelForm):
-    class Meta:
-        model = Factura
-        fields = ['empleado', 'cliente', 'fecha_emision', 'metodo_pago', 'estado_pago', 'total']
-
-class DetalleFacturaForm(forms.ModelForm):
-    class Meta:
-        model = DetalleFactura
-        fields = ['factura', 'producto', 'vehiculo', 'cantidad', 'precio_unitario']
-
-    def clean(self):
-        cleaned_data = super().clean()
-        producto = cleaned_data.get('producto')
-        vehiculo = cleaned_data.get('vehiculo')
-
-        if producto and vehiculo:
-            raise forms.ValidationError('No puede seleccionar un producto y un vehículo al mismo tiempo.')
-        if not producto and not vehiculo:
-            raise forms.ValidationError('Debe seleccionar un producto o un vehículo.')
-
-        return cleaned_data
-    
-class FacturaForm(forms.ModelForm):
-    class Meta:
-        model = Factura
-        fields = ['empleado', 'cliente', 'metodo_pago']
-        widgets = {
-            'empleado': forms.Select(attrs={'class': 'form-control'}),
-            'cliente': forms.Select(attrs={'class': 'form-control'}),
-            'metodo_pago': forms.Select(attrs={'class': 'form-control'}),
-        }
-
-class DetalleFacturaForm(forms.ModelForm):
-    TIPO_CHOICES = [
-        ('', '---------'),  # Añade una opción vacía por defecto
-        ('producto', 'Producto'),
-        ('vehiculo', 'Vehículo'),
-    ]
-    
-    tipo = forms.ChoiceField(
-        choices=TIPO_CHOICES, 
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        required=True
+    fecha = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        initial=timezone.now().date()
     )
-    
-    item_id = forms.IntegerField(
+
+    hora = forms.TimeField(
+        widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+        initial=timezone.now().time()
+    )
+
+    metodo_pago = forms.ChoiceField(
+        choices=[('efectivo', 'Efectivo'), ('tarjeta', 'Tarjeta'), ('transferencia', 'Transferencia')],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    total = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Total de la factura', 'min': '0', 'step': '0.01'})
+    )
+
+    empleado = forms.ModelChoiceField(
+        queryset=Empleado.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'}),
-        required=False
+        required=False,
+        empty_label="Seleccione un empleado"
+    )
+
+    cliente = forms.ModelChoiceField(
+        queryset=Cliente.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=False,
+        empty_label="Seleccione un cliente"
     )
 
     class Meta:
-        model = DetalleFactura
-        fields = ['cantidad', 'precio_unitario']
-        widgets = {
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-            'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0}),
-        }
+        model = Factura
+        fields = ['empleado', 'cliente', 'fecha', 'hora', 'metodo_pago', 'total']
+
+    def clean_total(self):
+        """Validación personalizada para el total"""
+        total = self.cleaned_data.get('total')
+        if total <= 0:
+            raise ValidationError('El total debe ser mayor que 0.')
+        return total
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        # Cargar opciones dinámicamente
-        self.fields['item_id'].widget.choices = [('', '---------')] + [
-            (p.id, f"{p.nombre} - {p.marca}") 
-            for p in Producto.objects.filter(estado='Disponible')
-        ] + [
-            (v.id, f"{v.marca} {v.modelo} - {v.placa}") 
-            for v in Vehiculo.objects.filter(estado='Disponible')
-    ]
+        if self.instance and self.instance.pk:
+            # Aquí podrías agregar lógica personalizada si la instancia ya existe
+            pass
+
+class DetalleFacturaForm(forms.ModelForm):
+    producto = forms.ModelChoiceField(
+        queryset=Producto.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="Seleccione un producto"
+    )
+
+    cantidad = forms.IntegerField(
+        validators=[MinValueValidator(1)],
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Cantidad'})
+    )
+
+    precio_unitario = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Precio unitario', 'min': '0', 'step': '0.01'})
+    )
+
+    class Meta:
+        model = DetalleFactura
+        fields = ['factura', 'producto', 'cantidad', 'precio_unitario']
+        widgets = {
+            'factura': forms.HiddenInput(),  # El campo factura se ocultará
+        }
+
+    def clean_precio_unitario(self):
+        """Validación personalizada para el precio unitario"""
+        precio_unitario = self.cleaned_data.get('precio_unitario')
+        if precio_unitario <= 0:
+            raise ValidationError('El precio unitario debe ser mayor que 0.')
+        return precio_unitario
 
     def clean(self):
+        """Validaciones a nivel de formulario"""
         cleaned_data = super().clean()
-        tipo = cleaned_data.get('tipo')
-        item_id = cleaned_data.get('item_id')
         cantidad = cleaned_data.get('cantidad')
-
-        # Validaciones básicas
-        if not tipo:
-            raise forms.ValidationError("Debe seleccionar un tipo (Producto o Vehículo)")
-
-        if not item_id:
-            raise forms.ValidationError("Debe seleccionar un producto o vehículo")
-
-        try:
-            # Validar disponibilidad según el tipo
-            if tipo == 'producto':
-                producto = Producto.objects.get(id=item_id)
-                if cantidad > producto.cantidad:
-                    raise forms.ValidationError(f"Solo hay {producto.cantidad} unidades disponibles de este producto.")
-                cleaned_data['producto'] = producto
-                cleaned_data['precio_unitario'] = producto.precio
-                cleaned_data['vehiculo'] = None
-            elif tipo == 'vehiculo':
-                vehiculo = Vehiculo.objects.get(id=item_id)
-                if cantidad > vehiculo.cantidad:
-                    raise forms.ValidationError(f"Solo hay {vehiculo.cantidad} unidades disponibles de este vehículo.")
-                cleaned_data['vehiculo'] = vehiculo
-                cleaned_data['precio_unitario'] = vehiculo.precio
-                cleaned_data['producto'] = None
-            else:
-                raise forms.ValidationError("Tipo de item inválido")
-
-        except (Producto.DoesNotExist, Vehiculo.DoesNotExist):
-            raise forms.ValidationError("El producto o vehículo seleccionado no existe")
+        precio_unitario = cleaned_data.get('precio_unitario')
+        
+        if cantidad and precio_unitario:
+            total = cantidad * precio_unitario
+            # Puedes agregar la lógica para calcular el total aquí si lo deseas
 
         return cleaned_data
-        
+
