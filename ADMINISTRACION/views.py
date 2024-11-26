@@ -22,6 +22,9 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 
+def logout(request):
+    request.session.flush()  # Elimina todos los datos de la sesión
+    return render(request, 'vista.html')
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -32,13 +35,20 @@ def custom_500(request):
 def home_administracion(request):
     # Obtener conteos de cada modelo
     clientes_count = Cliente.objects.count()
-    
+    personal_count = Empleado.objects.count()
+    proveedor_count = Proveedor.objects.count()
+    productos_count = Producto.objects.count()
+    vehiculos_count = Vehiculo.objects.count()
     
     context = {
         'clientes_count': clientes_count,
-        
+        'personal_count': personal_count,
+        'proveedor_count': proveedor_count,
+        'productos_count': productos_count,
+        'vehiculos_count': vehiculos_count,
     }
     return render(request, 'administracion/administracion.html', context)
+
 
 # Lista de Clientes
 def lista_clientes(request):

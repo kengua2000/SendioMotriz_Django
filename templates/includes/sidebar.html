@@ -1,11 +1,20 @@
 <!-- Barra Lateral -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <h2><a href="{% url 'home_administracion' %}"  class="text-decoration-none"><i class="fas fa-tools me-2"></i>Sendio Motriz</a></h2>
+        <h2>
+            <a href="{% url 'home' %}" class="text-decoration-none">
+                <i class="fas fa-tools me-2"></i>Sendio Motriz
+            </a>
+        </h2>
+        {% if request.session.user_id and request.session.user_role == 'empleado' %}
+            <p class="text-white mt-2 user-profile-link" data-bs-toggle="modal" data-bs-target="#employeeProfileModal" style="cursor: pointer;">
+                {{ request.session.username }}
+            </p>
+        {% endif %}
     </div>
     
     <nav class="nav nav-pills flex-column p-3">
-        <a href="{% url 'home_administracion' %}"  class="nav-link">
+        <a href="{% url 'home_administracion' %}" class="nav-link">
             <i class="fas fa-home"></i>
             Home
         </a>
@@ -17,7 +26,6 @@
             <i class="fas fa-user-tie"></i>
             Personal
         </a>
-        
         <a href="{% url 'lista_proveedores' %}" class="nav-link">
             <i class="fas fa-industry me-2"></i>
             Proveedores
@@ -30,10 +38,56 @@
             <i class="fas fa-car"></i>
             Vehículos
         </a>
-        
-        <a href="{% url 'factura_crear' %}"  class="nav-link">
+        <a href="{% url 'factura_crear' %}" class="nav-link">
             <i class="fas fa-file-invoice-dollar"></i>
             Facturas
         </a>
     </nav>
 </aside>
+
+<!-- Employee Profile Modal -->
+{% if request.session.user_id and request.session.user_role == 'empleado' %}
+<div class="modal fade" id="employeeProfileModal" tabindex="-1" aria-labelledby="employeeProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="employeeProfileModalLabel">Perfil de Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-tie fa-5x text-primary"></i>
+                </div>
+                <table class="table">
+                    <tr>
+                        <th>Nombre de Usuario:</th>
+                        <td>{{ request.session.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Rol:</th>
+                        <td>Empleado</td>
+                    </tr>
+                    {% if request.session.email %}
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ request.session.email }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if request.session.cargo %}
+                    <tr>
+                        <th>Cargo:</th>
+                        <td>{{ request.session.cargo }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'logout' %}" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

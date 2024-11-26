@@ -62,20 +62,6 @@
                         </ul>
                     </div>
 
-                    <div class="mb-4">
-                        <h3 class="h5 mb-3">Información Adicional</h3>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-calendar-plus me-2"></i>
-                                <strong>Fecha de registro:</strong> {{ vehiculo.fecha_creacion|date:"d/m/Y" }}
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-calendar-check me-2"></i>
-                                <strong>Última actualización:</strong> {{ vehiculo.fecha_actualizacion|date:"d/m/Y" }}
-                            </li>
-                        </ul>
-                    </div>
-
                     <div class="d-grid gap-2">
                         <button class="btn btn-primary btn-lg" {% if vehiculo.estado != 'Disponible' or vehiculo.cantidad == 0 %}disabled{% endif %}>
                             <i class="fas fa-car me-2"></i>

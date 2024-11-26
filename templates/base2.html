@@ -6,7 +6,6 @@
     <title>Sendio Motriz - Tienda</title>
 
     <!-- CSS de Bootstrap -->
-   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome para iconos -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -29,13 +28,62 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <nav class="navbar-nav ms-auto">
                     <a href="{% url 'lista_productos2' %}" class="nav-link"><i class="fas fa-boxes"></i> Productos</a>
-                    
                     <a href="{% url 'lista_vehiculos2' %}" class="nav-link"><i class="fas fa-car"></i> Vehículos</a>
-                    <a href="{% url 'login2' %}" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    <a href="{% url 'acerca' %}" class="nav-link"><i class="fas fa-car"></i> Acerca de Nosotros</a>
+                    
+                    {% if request.session.user_id and request.session.user_role == 'cliente' %}
+                        <!-- Usuario autenticado como cliente -->
+                        <a href="#" class="nav-link user-profile-link" data-bs-toggle="modal" data-bs-target="#userProfileModal"><i class="fas fa-user"></i> {{ request.session.username }}</a>
+                    {% elif request.session.user_id and request.session.user_role == 'empleado' %}
+                        <!-- Usuario autenticado como empleado -->
+                        <a href="#" class="nav-link user-profile-link" data-bs-toggle="modal" data-bs-target="#userProfileModal"><i class="fas fa-user-tie"></i> {{ request.session.username }}</a>
+                    {% else %}
+                        <!-- Usuario no autenticado -->
+                        <a href="{% url 'login2' %}" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    {% endif %}
                 </nav>
             </div>
         </div>
     </header>
+
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userProfileModalLabel">Perfil de Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <table class="table">
+                        <tr>
+                            <th>Nombre de Usuario:</th>
+                            <td>{{ request.session.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Rol:</th>
+                            <td>{{ request.session.user_role|title }}</td>
+                        </tr>
+                        {% if request.session.user_role == 'cliente' %}
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ request.session.email|default:'No disponible' }}</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'logout' %}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Contenido Principal -->
     <main class="content">
@@ -47,6 +95,6 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/base.js' %}"></script>
+
 </body>
 </html>

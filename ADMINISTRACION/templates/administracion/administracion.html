@@ -2,8 +2,6 @@
 
 {% load static %}
 
-
-
 {% block content %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
@@ -16,43 +14,60 @@
     </div>
 
     <div class="row mt-5">
+        <!-- Clientes -->
         <div class="col-md-3 mb-4">
             <a href="{% url 'lista_clientes' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
                 <div class="card-body text-center">
-                    <i class="bi bi-people-fill icon text-primary mb-3"></i>
+                    <i class="fas fa-users icon text-primary mb-3"></i>
                     <h5 class="card-title">Clientes</h5>
                     <p class="card-text">{{ clientes_count }} registrados</p>
                 </div>
             </a>
         </div>
+
+        <!-- Personal -->
         <div class="col-md-3 mb-4">
-            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+            <a href="{% url 'lista_empleados' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
                 <div class="card-body text-center">
-                    <i class="bi bi-person-fill icon text-primary mb-3"></i>
+                    <i class="fas fa-user-tie icon text-primary mb-3"></i>
                     <h5 class="card-title">Personal</h5>
-                    <p class="card-text">{{ empleados_count }} registrados</p>
+                    <p class="card-text">{{ personal_count }} registrados</p>
                 </div>
             </a>
         </div>
+
+        <!-- Productos -->
         <div class="col-md-3 mb-4">
-            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+            <a href="{% url 'lista_productos' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
                 <div class="card-body text-center">
-                    <i class="bi bi-box-seam-fill icon text-primary mb-3"></i>
+                    <i class="fas fa-boxes icon text-primary mb-3"></i>
                     <h5 class="card-title">Productos</h5>
                     <p class="card-text">{{ productos_count }} disponibles</p>
                 </div>
             </a>
         </div>
+
+        <!-- Vehículos -->
         <div class="col-md-3 mb-4">
-            <a  class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+            <a href="{% url 'lista_vehiculos' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
                 <div class="card-body text-center">
-                    <i class="bi bi-car-front-fill icon text-primary mb-3"></i>
+                    <i class="fas fa-car icon text-primary mb-3"></i>
                     <h5 class="card-title">Vehículos</h5>
                     <p class="card-text">{{ vehiculos_count }} en inventario</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Proveedores -->
+        <div class="col-md-3 mb-4">
+            <a href="{% url 'lista_proveedores' %}" class="card h-100 shadow-sm border-primary text-decoration-none text-reset">
+                <div class="card-body text-center">
+                    <i class="fas fa-industry icon text-primary mb-3"></i>
+                    <h5 class="card-title">Proveedores</h5>
+                    <p class="card-text">{{ proveedor_count }} registrados</p>
                 </div>
             </a>
         </div>
     </div>
 </div>
 {% endblock %}
-

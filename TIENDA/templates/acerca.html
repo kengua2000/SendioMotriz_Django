@@ -1,0 +1,73 @@
+{% extends 'base2.html' %}
+{% load static %}
+
+{% block content %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'acerca.css' %}">
+{% endblock %}
+
+
+<div class="containersobre">
+    <img src="../static/Media/SENDIO.png" alt="SENDIO ORIGINAL" class="logo">
+   
+    <p>Somos un concesionario dedicado a la venta de autos nuevos y usados, así como a la comercialización de refacciones y repuestos. Ubicados en Ipiales, Nariño, nos enorgullece ofrecer a nuestros clientes vehículos de calidad y un servicio excepcional. Con años de experiencia en el sector automotriz, nuestro objetivo es satisfacer las necesidades de movilidad de nuestra comunidad, brindando opciones accesibles y confiables.</p>
+    
+    <h2>Misión</h2>
+    <p>Nuestra misión es proporcionar a nuestros clientes vehículos nuevos y usados de alta calidad, junto con una amplia gama de refacciones y repuestos, todo ello respaldado por un servicio al cliente excepcional. Nos esforzamos por ser un referente en el sector automotriz en Ipiales, ofreciendo soluciones de transporte que se adapten a las necesidades y presupuestos de nuestros clientes.</p>
+    
+    <h2>Visión</h2>
+    <p>Aspiramos a ser el concesionario de referencia en Ipiales y la región, reconocido por nuestra integridad, calidad de servicio y amplia oferta de vehículos y repuestos. Queremos ser el primer lugar al que acudan nuestros clientes cuando necesiten un auto nuevo o usado, o refacciones de confianza, contribuyendo así al desarrollo y bienestar de nuestra comunidad.</p>
+    
+    <h2>Contacto</h2>
+    <div class="highlight">
+        <div class="contact-info">
+            <p><strong>Celular:</strong> 3106548451</p>
+            <p><strong>Dirección:</strong> Calle 18 #2-19, Ipiales-Nariño</p>
+            <p><strong>NIT:</strong> 6488796523</p>
+            <p><strong>Email:</strong> SendioM2019@gmail.com</p>
+        </div>
+    </div>
+
+    <div class="testimonials">
+        <h2>Testimonios</h2>
+        <div class="testimonial-container">
+            <div class="testimonial">
+                <img src="https://http2.mlstatic.com/D_NQ_NP_991022-MCO31949283016_082019-W.jpg" alt="Auto Nuevo">
+                <p>" El proceso de compra fue rápido y sencillo, y el personal fue muy amable. No podría estar más feliz con mi nueva adquisición, el mejor auto."</p>
+                <div class="stars">★★★★★</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://th.bing.com/th/id/R.3febdb9eff4b7b6b6d8d3f91f5ff352c?rik=%2blT54igxxKahOw&pid=ImgRaw&r=0" alt="Repuesto de Calidad">
+                <p>"Gran experiencia de compra. Además, encontré todas las refacciones que necesitaba a un precio justo. Definitivamente volveré."</p>
+                <div class="stars">★★★★★</div>
+            </div>
+            <div class="testimonial">
+                <img src="https://th.bing.com/th/id/OIP.7FSQvDUBJSc1U769uon-wQHaEn?rs=1&pid=ImgDetMain" alt="Servicio Excepcional">
+                <p>"Repuestos de alta calidad y a buen precio. ¡Gracias! La atención al cliente es de primera y siempre están dispuestos a ayudar."</p>
+                <div class="stars">★★★★☆</div>
+            </div>
+            <div class="testimonial">
+                <p>"Atención rápida y personalizada. Volveré sin duda. Encontré el auto perfecto para mí y me dieron un excelente plan de financiamiento. Muy agradecido por todo el apoyo brindado."</p>
+                <div class="stars">★★★★★</div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Cómo llegar</h2>
+    <div class="map">
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.3432242372224!2d-77.64379518523874!3d0.8265830993773835!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e2ed4784ff0a289%3A0x2b0db1ea1f66e5a3!2sCalle%2018%20%232-19%2C%20Ipiales%2C%20Nari%C3%B1o%2C%20Colombia!5e0!3m2!1ses!2s!4v1686085088467!5m2!1ses!2s" 
+            width="600" 
+            height="450" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+    <div class="footer">
+    <p>&copy; 2024 Concesionario Ipiales. Todos los derechos reservados. </p>
+</div>
+</div>
+{% endblock %}

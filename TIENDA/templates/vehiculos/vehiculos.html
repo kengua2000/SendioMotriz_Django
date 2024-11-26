@@ -4,6 +4,35 @@
 {% block content %}
 <div class="container py-5">
     <h2 class="text-center mb-4">Vehículos Disponibles</h2>
+    
+    <!-- Barra de búsqueda -->
+    <div class="row mb-4">
+        <div class="col-md-6 mx-auto">
+            <form method="GET" class="d-flex">
+                <input 
+                    class="form-control me-2" 
+                    type="search" 
+                    placeholder="Buscar vehículos por marca, modelo, placa o color" 
+                    aria-label="Buscar" 
+                    name="busqueda"
+                    value="{{ busqueda }}"
+                >
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Mensaje de búsqueda -->
+    {% if busqueda %}
+        <div class="alert alert-info text-center" role="alert">
+            Resultados de búsqueda para: "{{ busqueda }}"
+            <span class="badge bg-secondary ms-2">{{ vehiculos.count }} vehículo(s) encontrado(s)</span>
+        </div>
+    {% endif %}
+
+    <!-- Vehículos -->
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for vehiculo in vehiculos %}
         <div class="col">
@@ -48,7 +77,11 @@
         </div>
         {% empty %}
         <div class="col-12 text-center">
-            <p class="text-muted">No hay vehículos disponibles en este momento.</p>
+            {% if busqueda %}
+                <p class="text-muted">No se encontraron vehículos que coincidan con "{{ busqueda }}".</p>
+            {% else %}
+                <p class="text-muted">No hay vehículos disponibles en este momento.</p>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

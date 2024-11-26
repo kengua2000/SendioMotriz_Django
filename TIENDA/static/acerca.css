@@ -1,0 +1,101 @@
+
+    .containersobre {
+        width: 60%;
+        margin: 20px auto;
+        padding: 20px;
+        border: 5px solid #1d5289;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .logo {
+        display: block;
+        margin: 50px auto 30px auto;
+        max-width: 100%;
+    }
+    
+    h2 {
+        color: #0056b3;
+        text-align: center;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        font-weight: bold;
+    }
+    h1 {
+        margin-top: 20px;
+        font-size: 28px;
+    }
+    h2 {
+        margin-top: 30px;
+        font-size: 24px;
+    }
+    p {
+        line-height: 1.6;
+        text-align: justify;
+    }
+    .contact-info {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .contact-info p {
+        margin: 8px 0;
+        font-size: 14px;
+        text-align: center;
+    }
+    .map {
+        margin: 30px 0;
+        text-align: center;
+    }
+    
+    .highlight {
+        background-color: #cfd9e2;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+    .highlight:hover {
+        background-color: #a8c0ff;
+    }
+
+    /* Testimonios */
+    .testimonials {
+        margin: 40px 0;
+        text-align: center;
+    }
+    .testimonials h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    .testimonial {
+        margin: 10px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+        display: inline-block;
+        width: 300px;
+        vertical-align: top;
+        text-align: left;
+    }
+    .testimonial p {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    .stars {
+        color: #ffdd00;
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+    .testimonial img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    .testimonial-container {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 20px;
+    }
