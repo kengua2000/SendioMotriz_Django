@@ -3,12 +3,15 @@ from django import forms
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
+from django.utils.translation import gettext_lazy as _
 import re
 
 from .models import (
     Cliente,
+    DetalleFactura,
     Empleado,
     EstadoProductoChoices,
+    Factura,
     Producto,
     Proveedor,
     Vehiculo
@@ -791,4 +794,113 @@ class VehiculoForm(forms.ModelForm):
         return cleaned_data
 
 
+
+
+
+class FacturaForm(forms.ModelForm):
+    class Meta:
+        model = Factura
+        fields = ['empleado', 'cliente', 'fecha_emision', 'metodo_pago', 'estado_pago', 'total']
+
+class DetalleFacturaForm(forms.ModelForm):
+    class Meta:
+        model = DetalleFactura
+        fields = ['factura', 'producto', 'vehiculo', 'cantidad', 'precio_unitario']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        producto = cleaned_data.get('producto')
+        vehiculo = cleaned_data.get('vehiculo')
+
+        if producto and vehiculo:
+            raise forms.ValidationError('No puede seleccionar un producto y un vehículo al mismo tiempo.')
+        if not producto and not vehiculo:
+            raise forms.ValidationError('Debe seleccionar un producto o un vehículo.')
+
+        return cleaned_data
+    
+class FacturaForm(forms.ModelForm):
+    class Meta:
+        model = Factura
+        fields = ['empleado', 'cliente', 'metodo_pago']
+        widgets = {
+            'empleado': forms.Select(attrs={'class': 'form-control'}),
+            'cliente': forms.Select(attrs={'class': 'form-control'}),
+            'metodo_pago': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+class DetalleFacturaForm(forms.ModelForm):
+    TIPO_CHOICES = [
+        ('', '---------'),  # Añade una opción vacía por defecto
+        ('producto', 'Producto'),
+        ('vehiculo', 'Vehículo'),
+    ]
+    
+    tipo = forms.ChoiceField(
+        choices=TIPO_CHOICES, 
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True
+    )
+    
+    item_id = forms.IntegerField(
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=False
+    )
+
+    class Meta:
+        model = DetalleFactura
+        fields = ['cantidad', 'precio_unitario']
+        widgets = {
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Cargar opciones dinámicamente
+        self.fields['item_id'].widget.choices = [('', '---------')] + [
+            (p.id, f"{p.nombre} - {p.marca}") 
+            for p in Producto.objects.filter(estado='Disponible')
+        ] + [
+            (v.id, f"{v.marca} {v.modelo} - {v.placa}") 
+            for v in Vehiculo.objects.filter(estado='Disponible')
+    ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        item_id = cleaned_data.get('item_id')
+        cantidad = cleaned_data.get('cantidad')
+
+        # Validaciones básicas
+        if not tipo:
+            raise forms.ValidationError("Debe seleccionar un tipo (Producto o Vehículo)")
+
+        if not item_id:
+            raise forms.ValidationError("Debe seleccionar un producto o vehículo")
+
+        try:
+            # Validar disponibilidad según el tipo
+            if tipo == 'producto':
+                producto = Producto.objects.get(id=item_id)
+                if cantidad > producto.cantidad:
+                    raise forms.ValidationError(f"Solo hay {producto.cantidad} unidades disponibles de este producto.")
+                cleaned_data['producto'] = producto
+                cleaned_data['precio_unitario'] = producto.precio
+                cleaned_data['vehiculo'] = None
+            elif tipo == 'vehiculo':
+                vehiculo = Vehiculo.objects.get(id=item_id)
+                if cantidad > vehiculo.cantidad:
+                    raise forms.ValidationError(f"Solo hay {vehiculo.cantidad} unidades disponibles de este vehículo.")
+                cleaned_data['vehiculo'] = vehiculo
+                cleaned_data['precio_unitario'] = vehiculo.precio
+                cleaned_data['producto'] = None
+            else:
+                raise forms.ValidationError("Tipo de item inválido")
+
+        except (Producto.DoesNotExist, Vehiculo.DoesNotExist):
+            raise forms.ValidationError("El producto o vehículo seleccionado no existe")
+
+        return cleaned_data
         

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Factura #{{ factura.id }}</h1>
+<p>Cliente: {{ factura.cliente }}</p>
+<p>Empleado: {{ factura.empleado }}</p>
+<p>Fecha de Emisión: {{ factura.fecha_emision }}</p>
+<p>Método de Pago: {{ factura.get_metodo_pago_display }}</p>
+<p>Estado de Pago: {{ factura.get_estado_pago_display }}</p>
+<p>Total: {{ factura.total }}</p>
+
+<h2>Detalles</h2>
+<ul>
+    {% for detalle in factura.detalles.all %}
+    <li>{{ detalle }} - {{ detalle.cantidad }} x {{ detalle.precio_unitario }}</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'detalle_factura_create' %}?factura={{ factura.id }}">Añadir Detalle</a>
+{% endblock %}

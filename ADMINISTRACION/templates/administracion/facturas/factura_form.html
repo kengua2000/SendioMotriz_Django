@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Crear Nueva Factura</h2>
+    <form method="post" id="facturaForm">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                {{ form.as_p }}
+            </div>
+        </div>
+        
+        <h3>Agregar Productos/Vehículos</h3>
+        {{ detalles_formset.management_form }}
+        
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label>Tipo</label>
+                {{ detalles_formset.form.tipo }}
+            </div>
+            <div class="col-md-3">
+                <label>Producto/Vehículo</label>
+                {{ detalles_formset.form.item_id }}
+            </div>
+            <div class="col-md-2">
+                <label>Cantidad</label>
+                {{ detalles_formset.form.cantidad }}
+            </div>
+            <div class="col-md-2">
+                <label>&nbsp;</label>
+                <button type="button" id="agregarProducto" class="btn btn-primary form-control">Agregar</button>
+            </div>
+        </div>
+
+        <h3>Productos Agregados</h3>
+        <table class="table" id="productosTable">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="productosBody">
+                <!-- Productos se agregarán aquí dinámicamente -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4"><strong>Total</strong></td>
+                    <td id="totalFactura">0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <button type="submit" class="btn btn-success">Guardar Factura</button>
+    </form>
+</div>
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.querySelector('[name$="-tipo"]');
+    const itemSelect = document.querySelector('[name$="-item_id"]');
+    const cantidadInput = document.querySelector('[name$="-cantidad"]');
+    const agregarBtn = document.getElementById('agregarProducto');
+    const productosBody = document.getElementById('productosBody');
+    const totalFacturaElement = document.getElementById('totalFactura');
+
+    // Filtrar opciones de productos/vehículos
+    tipoSelect.addEventListener('change', function() {
+        Array.from(itemSelect.options).forEach(option => {
+            if (option.value === '') {
+                option.style.display = 'block';
+            } else {
+                option.style.display = this.value === 'producto' 
+                    ? option.text.includes('- ') ? 'block' : 'none'
+                    : !option.text.includes('- ') ? 'block' : 'none';
+            }
+        });
+        // Resetear selección
+        itemSelect.selectedIndex = 0;
+    });
+
+    // Agregar producto/vehículo
+    agregarBtn.addEventListener('click', function() {
+        const tipo = tipoSelect.value;
+        const itemId = itemSelect.value;
+        const cantidad = cantidadInput.value;
+        const itemTexto = itemSelect.options[itemSelect.selectedIndex].text;
+
+        // Validaciones
+        if (!tipo || !itemId || !cantidad || cantidad <= 0) {
+            alert('Por favor complete todos los campos correctamente');
+            return;
+        }
+
+        // Calcular precio
+        const precioUnitario = calcularPrecio(tipo, itemId);
+        const subtotal = precioUnitario * cantidad;
+
+        // Crear fila en la tabla
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${tipo === 'producto' ? 'Producto' : 'Vehículo'}</td>
+            <td>${itemTexto}</td>
+            <td>${cantidad}</td>
+            <td>${precioUnitario.toFixed(2)}</td>
+            <td>${subtotal.toFixed(2)}</td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm eliminar-producto">Eliminar</button>
+                <input type="hidden" name="detalles-${productosBody.children.length}-tipo" value="${tipo}">
+                <input type="hidden" name="detalles-${productosBody.children.length}-item_id" value="${itemId}">
+                <input type="hidden" name="detalles-${productosBody.children.length}-cantidad" value="${cantidad}">
+            </td>
+        `;
+
+        // Agregar evento eliminar
+        fila.querySelector('.eliminar-producto').addEventListener('click', function() {
+            productosBody.removeChild(fila);
+            actualizarTotal();
+        });
+
+        // Añadir fila a la tabla
+        productosBody.appendChild(fila);
+
+        // Actualizar total
+        actualizarTotal();
+
+        // Limpiar campos
+        cantidadInput.value = '';
+        itemSelect.selectedIndex = 0;
+    });
+
+    // Calcular precio según tipo
+    function calcularPrecio(tipo, itemId) {
+        const preciosProductos = {
+            {% for p in productos %}
+            '{{ p.id }}': {{ p.precio }},
+            {% endfor %}
+        };
+        const preciosVehiculos = {
+            {% for v in vehiculos %}
+            '{{ v.id }}': {{ v.precio }},
+            {% endfor %}
+        };
+
+        return tipo === 'producto' 
+            ? preciosProductos[itemId] 
+            : preciosVehiculos[itemId];
+    }
+
+    // Actualizar total de la factura
+    function actualizarTotal() {
+        const filas = productosBody.querySelectorAll('tr');
+        let total = 0;
+        filas.forEach(fila => {
+            const subtotal = parseFloat(fila.children[4].textContent);
+            total += subtotal;
+        });
+        totalFacturaElement.textContent = total.toFixed(2);
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

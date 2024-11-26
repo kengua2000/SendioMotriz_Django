@@ -10,12 +10,9 @@
 
 /* Contenido principal */
 .content {
-    margin-top: 56px; /* Altura de la barra de navegación */
+    margin-top: 0px; /* Altura de la barra de navegación */
     padding: 20px;
 }
-
-
-
 
 
 .navbar-nav .nav-link {

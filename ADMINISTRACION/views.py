@@ -6,10 +6,22 @@ from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo
 from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm, VehiculoForm
 
 from django.contrib import messages
+from django.db import IntegrityError
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Q
+from .models import Cliente, Empleado, Producto, Proveedor, Vehiculo, Factura, DetalleFactura
+from .forms import ClienteForm, EmpleadoForm, ProductoForm, ProveedorForm, VehiculoForm, FacturaForm, DetalleFacturaForm
+
+from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.urls import reverse_lazy
+from django.db import transaction
+from django.forms import inlineformset_factory
+from django.http import HttpResponseRedirect
 
-
-from django.shortcuts import render
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -412,7 +424,69 @@ def eliminar_vehiculo(request, id):
     return redirect('lista_vehiculos')
 
 
+class FacturaCreateView(CreateView):
+    model = Factura
+    form_class = FacturaForm
+    template_name = 'administracion/facturas/factura_form.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        DetalleFacturaFormSet = inlineformset_factory(
+            Factura, 
+            DetalleFactura, 
+            form=DetalleFacturaForm, 
+            extra=3,  
+            can_delete=True
+        )
+        
+        if self.request.POST:
+            context['detalles_formset'] = DetalleFacturaFormSet(self.request.POST)
+        else:
+            context['detalles_formset'] = DetalleFacturaFormSet()
+        
+        return context
 
+    def form_valid(self, form):
+        context = self.get_context_data()
+        detalles_formset = context['detalles_formset']
+        
+        with transaction.atomic():
+            # Guardar la factura
+            self.object = form.save(commit=False)
+            
+            # Establecer total a 0 por defecto
+            self.object.total = 0
+            
+            # Validar y guardar los detalles
+            if detalles_formset.is_valid():
+                detalles_formset.instance = self.object
+                detalles = detalles_formset.save(commit=False)
+                
+                # Calcular total y actualizar stock
+                total = 0
+                for detalle in detalles:
+                    detalle.factura = self.object
+                    
+                    # Resto del código existente...
+                    
+                # Actualizar total de la factura
+                self.object.total = total
+                self.object.save()
+                
+                messages.success(self.request, 'Factura creada exitosamente')
+                return super().form_valid(form)
+            else:
+                messages.error(self.request, 'Hay errores en los detalles de la factura')
+                return self.render_to_response(self.get_context_data(form=form))
 
-
-
+    def get_success_url(self):
+        return reverse_lazy('factura_detalle', kwargs={'pk': self.object.pk})
+    
+DetalleFacturaFormSet = inlineformset_factory(
+    Factura, 
+    DetalleFactura, 
+    form=DetalleFacturaForm, 
+    extra=3,  
+    can_delete=True,
+    can_delete_extra=True  # Permite eliminar formularios extras
+)

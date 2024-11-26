@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Facturas</h1>
+<a href="{% url 'factura_create' %}">Crear Nueva Factura</a>
+<ul>
+    {% for factura in facturas %}
+    <li>
+        <a href="{% url 'factura_detail' factura.id %}">Factura #{{ factura.id }} - {{ factura.cliente }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

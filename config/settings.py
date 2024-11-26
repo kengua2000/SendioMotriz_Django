@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'ADMINISTRACION'
+    'widget_tweaks',
+    'ADMINISTRACION',
+    'TIENDA',
 ]
 
 MIDDLEWARE = [
@@ -142,11 +144,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'ADMINISTRACION/static'),
+    os.path.join(BASE_DIR, 'TIENDA/static'),
 ]
 
-#LOGIN_URL = 'login'
-#LOGIN_REDIRECT_URL = 'inventario:dashboard'
-#LOGOUT_REDIRECT_URL = 'login'
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

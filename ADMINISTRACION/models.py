@@ -134,3 +134,77 @@ class Vehiculo(models.Model):
     def __str__(self):
         return f"{self.marca} {self.modelo} - {self.placa}"
 
+class Factura(models.Model):
+    empleado = models.ForeignKey(
+        Empleado,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='facturas'
+    )
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='facturas'
+    )
+    fecha_emision = models.DateTimeField(default=timezone.now)
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=MetodoPagoChoices.choices
+    )
+    estado_pago = models.CharField(
+        max_length=20,
+        choices=EstadoPagoChoices.choices,
+        default=EstadoPagoChoices.PENDIENTE
+    )
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+
+    def __str__(self):
+        return f"Factura #{self.id} - {self.cliente}"
+
+class DetalleFactura(models.Model):
+    factura = models.ForeignKey(
+        Factura,
+        on_delete=models.CASCADE,
+        related_name='detalles'
+    )
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='detalles_factura'
+    )
+    vehiculo = models.ForeignKey(
+        Vehiculo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='detalles_factura'
+    )
+    cantidad = models.IntegerField(validators=[MinValueValidator(1)])
+    precio_unitario = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.producto and self.vehiculo:
+            raise ValidationError('No puede tener producto y vehículo al mismo tiempo')
+        if not self.producto and not self.vehiculo:
+            raise ValidationError('Debe especificar un producto o un vehículo')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        item = self.producto if self.producto else self.vehiculo
+        return f"Detalle de {item} en Factura #{self.factura.id}"
+

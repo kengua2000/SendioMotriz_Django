@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from ADMINISTRACION import views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('administracion/', include('ADMINISTRACION.urls')),  
-    path('accounts/', include('django.contrib.auth.urls')),  # Para el sistema de autenticación
+    path('administracion/', include('ADMINISTRACION.urls')),
+    path('', include('TIENDA.urls')),  
+    #path('accounts/', include('django.contrib.auth.urls')),  
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'ADMINISTRACION.views.custom_404'
