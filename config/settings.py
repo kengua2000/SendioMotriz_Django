@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_sendiomotriz2',
+        'NAME': 'db_sendiomotriz',
         'USER': 'admin',
         'PASSWORD': '1234',
         'HOST': 'localhost',

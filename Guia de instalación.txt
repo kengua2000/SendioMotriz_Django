@@ -1,0 +1,55 @@
+Guia de instalación 
+
+1. Preparar el Entorno Virtual
+
+# Crear un nuevo entorno virtual
+python -m venv env
+
+# Activar el entorno virtual
+# En Windows:
+env\Scripts\activate
+
+2. Instalar Dependencias
+
+pip install -r requirements.txt
+
+3. Configurar la Base de Datos
+
+en SendioMotriz_Django\config\settings.py
+configurar las variables con la base de datos 
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_sendiomotriz',
+        'USER': 'admin',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+o deja como esta y crea la base de datos y el usuario en un cmd
+comandos para crear la base de datos PostgreSQL
+# Entrar a PostgreSQL
+
+cd C:\Program Files\PostgreSQL\16\bin
+psql -U postgres
+
+# En la consola de PostgreSQL:
+
+CREATE DATABASE db_sendiomotriz2;
+CREATE USER admin WITH PASSWORD '1234';
+ALTER ROLE admin SET client_encoding TO 'utf8';
+ALTER ROLE admin SET default_transaction_isolation TO 'read committed';
+ALTER ROLE admin SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE db_sendiomotriz2 TO admin;
+\q
+
+# Realizar migraciones
+python manage.py makemigrations
+python manage.py migrate
+
+
+5. Ejecutar el Servidor
+python manage.py runserver
